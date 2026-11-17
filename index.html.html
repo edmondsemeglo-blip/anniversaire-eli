@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Cœur 3D</title>
+    <!-- Chargement de la bibliothèque Three.js pour la 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050505;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Style de la carte centrale */
+        .card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            z-index: 10;
+            pointer-events: none; /* Laisse passer les clics vers la 3D si besoin */
+        }
+
+        .card h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 0, 100, 0.7);
+        }
+
+        .card p {
+            font-size: 1.1rem;
+            color: #ffb6c1;
+            margin-bottom: 25px;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Les boutons interactifs */
+        .buttons {
+            pointer-events: auto;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            border: none;
+            color: white;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255, 65, 108, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 25px rgba(255, 65, 108, 0.8);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Contenu texte et boutons au premier plan -->
+    <div class="card">
+        <h1>Pour quelqu'un de spécial ❤️</h1>
+        <p>Tourne autour du cœur avec ta souris...</p>
+        <div class="buttons">
+            <button class="btn" onclick="lancerMessage()">Clique-moi</button>
+            <button class="btn btn-secondary" onclick="changerCouleur()">Changer de couleur</button>
+        </div>
+    </div>
+
+    <!-- Script JavaScript pour générer les particules 3D -->
+    <script>
+        // 1. Configuration de la scène 3D
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // 2. Création des particules en forme de cœur mathématique
+        const particleCount = 2000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            // Formule mathématique d'un cœur en 3D
+            const t = Math.random() * Math.PI * 2;
+            const x = 16 * Math.pow(Math.sin(t), 3);
+            const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+            const z = (Math.random() - 0.5) * 10;
+
+            positions[i * 3]     = x * 0.4;
+            positions[i * 3 + 1] = y * 0.4;
+            positions[i * 3 + 2] = z;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        // Apparence des particules (petits points lumineux roses/rouges)
+        const material = new THREE.PointsMaterial({
+            color: 0xff3366,
+            size: 0.25,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+
+        const heartParticles = new THREE.Points(geometry, material);
+        scene.add(heartParticles);
+
+        camera.position.z = 15;
+
+        // 3. Animation fluide (rotation automatique)
+        function animate() {
+            requestAnimationFrame(animate);
+            heartParticles.rotation.y += 0.005;
+            heartParticles.rotation.z = Math.sin(Date.now() * 0.002) * 0.1;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 4. Adaptation si on redimensionne la fenêtre
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 5. Actions des boutons interactifs
+        function lancerMessage() {
+            alert("💖 Ce petit monde magique a été créé rien que pour toi !");
+        }
+
+        function changerCouleur() {
+            // Change la couleur des particules entre le rose, le bleu et le doré
+            const couleurs = [0xff3366, 0x33ccff, 0xffd700, 0x9933ff];
+            const couleurAleatoire = couleurs[Math.floor(Math.random() * couleurs.length)];
+            material.color.setHex(couleurAleatoire);
+        }
+    </script>
+</body>
+</html>
